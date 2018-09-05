@@ -1,68 +1,45 @@
-const fs = require("fs");
+const { readNotes, writeNotes } = require("./files");
 
 addNote = (title, body) => {
   let notes = [];
-  fs.readFile("notes.json", (err, data) => {
-    if (data) {
-      // there a data in notes.json
-      try {
-        //try catch if file is empty
-        notes = JSON.parse(data);
-      } catch (err) {}
-    } else notes = [];
-
-    const note = { title, body };
-    const foundNote = notes.find(el => el.title === title);
-    if (foundNote) {
+  readNotes()
+    .then(res => {
+      notes = res;
+      const foundNote = notes.find(el => el.title === title);
       // title found
-      console.log("title exist \n", foundNote);
-      return;
-    }
-    notes = [...notes, note]; // add note to array
+      if (foundNote) console.log("title exist \n", foundNote);
+      else {
+        notes = [...notes, { title, body }]; // add note to array
+        writeNotes(notes);
+        console.log({ title, body }, "add successufly");
+      }
+    })
+    .catch(err => console.log(err.message));
+};
 
-    fs.writeFile("./notes.json", JSON.stringify(notes), err => {
-      if (err) throw err;
-      console.log(note);
-      console.log("note add succesufly");
+const removeNote = title => {
+  let notes = [];
+  return new Promise((resolve, reject) => {
+    readNotes().then(res => {
+      notes = res;
+      const foundNote = notes.find(el => el.title === title);
+      if (foundNote) {
+        //note exist
+        notes = notes.filter(el => el.title !== title); //delete
+        writeNotes(notes);
+        resolve(true); // delete succes
+      } else resolve(false); // item not exist
     });
   });
 };
 
-const removeNote = (title, callback) => {
-  let notes = [];
-  fs.readFile("notes.json", (err, data) => {
-    if (data) {
-      // there a data in notes.json
-      try {
-        //try catch if file is empty
-        notes = JSON.parse(data);
-      } catch (err) {}
-    } else notes = [];
-    const foundNote = notes.find(el => el.title === title);
-    if (foundNote) {
-      //note exist
-      callback(true);
-      notes = notes.filter(el => el.title !== title); //delete
-      fs.writeFile("./notes.json", JSON.stringify(notes), err => {
-        if (err) throw err;
-      });
-    } else callback(false);
-  });
-};
-
 const getNotes = () => {
-  let notes = [];
-  fs.readFile("notes.json", (err, data) => {
-    if (data) {
-      // there a data in notes.json
-      try {
-        //try catch if file is empty
-        notes = JSON.parse(data);
-      } catch (err) {}
-    } else notes = [];
-
-    console.log(notes);
-  });
+  readNotes()
+    .then(notes => {
+      if (!notes || notes.length === 0) console.log("empty !!! ");
+      else console.log(notes);
+    })
+    .catch(err => console.log(err.message));
 };
 
 module.exports = {

@@ -45,10 +45,12 @@ const argv = yargs
       if (title === undefined || title === true || title.length < 3)
         console.log("title must be longer than 2 caracters");
       else {
-        removeNote(title, res => {
-          if (res) console.log("removed!");
-          else console.log("title not exsited!");
-        });
+        removeNote(title)
+          .then(res => {
+            if (res) console.log("removed!");
+            else console.log("title not exsited!");
+          })
+          .catch(err => console.log("erreur : ", err.message));
       }
     }
   )
